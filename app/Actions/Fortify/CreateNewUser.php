@@ -15,7 +15,7 @@ class CreateNewUser implements CreatesNewUsers
     /**
      * Validate and create a newly registered user.
      *
-     * @param  array  $input
+     * @param array $input
      * @return \App\Models\User
      */
     public function create(array $input)
@@ -27,10 +27,14 @@ class CreateNewUser implements CreatesNewUsers
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['required', 'accepted'] : '',
         ])->validate();
 
-        return User::create([
+        $user = User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => Hash::make($input['password']),
         ]);
+
+        $user->channel()->create(['name' => $user->name]);
+
+        return $user;
     }
 }
