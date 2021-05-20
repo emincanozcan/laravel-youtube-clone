@@ -22,4 +22,9 @@ class Channel extends Model
 
         return "https://ui-avatars.com/api/?name=" . $this->name . "&color=7F9CF5&background=EBF4FF";
     }
+
+    public function videos()
+    {
+        return $this->hasMany(Video::class);
+    }
 }
