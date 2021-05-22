@@ -28,7 +28,7 @@ class UploadForm extends Component
         GenerateThumbnailOfVideo::dispatch($video);
         GenerateVideosForPublic::dispatch($video);
 
-        return redirect()->route('dashboard');
+        return redirect()->route('studio.videos');
     }
 
     public function render()

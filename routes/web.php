@@ -17,10 +17,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
-    return view('dashboard');
-})->name('dashboard');
 
-Route::middleware(['auth:sanctum', 'verified'])->get('/studio/upload', function () {
-    return view('studio.upload');
-})->name('studio.upload');
+Route::middleware(['auth:sanctum', 'verified'])->group(function(){
+
+    Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
+    Route::get('/studio/upload', fn() => view('studio.upload'))->name('studio.upload');
+    Route::get('/studio/videos', fn() => view('studio.videos'))->name('studio.videos');
+
+});
