@@ -5,7 +5,6 @@ namespace App\Jobs;
 use App\Models\Video;
 use FFMpeg\Format\Video\X264;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -23,6 +22,7 @@ class GenerateVideosForPublic implements ShouldQueue
 
     public function handle()
     {
+        $path = 'videos/' . $this->video->id . '/' . $this->video->id . '.m3u8';
         $lowBitrate = (new X264)->setKiloBitrate(250);
         $midBitrate = (new X264)->setKiloBitrate(500);
         $highBitrate = (new X264)->setKiloBitrate(1000);
@@ -32,7 +32,12 @@ class GenerateVideosForPublic implements ShouldQueue
             ->addFormat($lowBitrate)
             ->addFormat($midBitrate)
             ->addFormat($highBitrate)
+            ->onProgress(function ($percentage) {
+                $this->video->update(['process_progress_percentage' => $percentage]);
+            })
             ->toDisk('public')
-            ->save('videos/' . $this->video->id . '/' . $this->video->id .'.m3u8');
+            ->save($path);
+
+        $this->video->update(['public_video_path' => $path]);
     }
 }
