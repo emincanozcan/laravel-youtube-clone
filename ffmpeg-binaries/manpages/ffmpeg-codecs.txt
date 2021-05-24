@@ -163,6 +163,21 @@ CODEC OPTIONS
        b_qfactor float (encoding,video)
 	   Set qp factor between P and B frames.
 
+       b_strategy integer (encoding,video)
+	   Set strategy to choose between I/P/B-frames.
+
+       ps integer (encoding,video)
+	   Set RTP payload size in bytes.
+
+       mv_bits integer
+       header_bits integer
+       i_tex_bits integer
+       p_tex_bits integer
+       i_count integer
+       p_count integer
+       skip_count integer
+       misc_bits integer
+       frame_bits integer
        codec_tag integer
        bug flags (decoding,video)
 	   Workaround not auto detected encoder bugs.
@@ -259,6 +274,9 @@ CODEC OPTIONS
 
        has_b_frames integer
        block_align integer
+       mpeg_quant integer (encoding,video)
+	   Use MPEG quantizers instead of H.263.
+
        rc_override_count integer
        maxrate integer (encoding,audio,video)
 	   Set max bitrate tolerance (in bits/s). Requires bufsize to be set.
@@ -348,6 +366,14 @@ CODEC OPTIONS
 	       favor predicting from the previous frame instead of the current
 
        bits_per_coded_sample integer
+       pred integer (encoding,video)
+	   Set prediction method.
+
+	   Possible values:
+
+	   left
+	   plane
+	   median
        aspect rational number (encoding,video)
 	   Set sample aspect ratio.
 
@@ -577,6 +603,9 @@ CODEC OPTIONS
        last_pred integer (encoding,video)
 	   Set amount of motion predictors from the previous frame.
 
+       preme integer (encoding,video)
+	   Set pre motion estimation.
+
        precmp integer (encoding,video)
 	   Set pre motion estimation compare function.
 
@@ -626,6 +655,20 @@ CODEC OPTIONS
 	   Set limit motion vectors range (1023 for DivX player).
 
        global_quality integer (encoding,audio,video)
+       coder integer (encoding,video)
+	   Possible values:
+
+	   vlc variable length coder / huffman coder
+
+	   ac  arithmetic coder
+
+	   raw raw (no encoding)
+
+	   rle run-length coder
+
+       context integer (encoding,video)
+	   Set context model.
+
        slice_flags integer
        mbd integer (encoding,video)
 	   Set macroblock decision algorithm (high quality mode).
@@ -639,6 +682,12 @@ CODEC OPTIONS
 	       use fewest bits
 
 	   rd  use best rate distortion
+
+       sc_threshold integer (encoding,video)
+	   Set scene change threshold.
+
+       nr integer (encoding,video)
+	   Set noise reduction.
 
        rc_init_occupancy integer (encoding,video)
 	   Set number of bits which should be loaded into the rc buffer before
@@ -733,11 +782,65 @@ CODEC OPTIONS
        lowres integer (decoding,audio,video)
 	   Decode at 1= 1/2, 2=1/4, 3=1/8 resolutions.
 
+       skip_threshold integer (encoding,video)
+	   Set frame skip threshold.
+
+       skip_factor integer (encoding,video)
+	   Set frame skip factor.
+
+       skip_exp integer (encoding,video)
+	   Set frame skip exponent.  Negative values behave identical to the
+	   corresponding positive ones, except that the score is normalized.
+	   Positive values exist primarily for compatibility reasons and are
+	   not so useful.
+
+       skipcmp integer (encoding,video)
+	   Set frame skip compare function.
+
+	   Possible values:
+
+	   sad sum of absolute differences, fast (default)
+
+	   sse sum of squared errors
+
+	   satd
+	       sum of absolute Hadamard transformed differences
+
+	   dct sum of absolute DCT transformed differences
+
+	   psnr
+	       sum of squared quantization errors (avoid, low quality)
+
+	   bit number of bits needed for the block
+
+	   rd  rate distortion optimal, slow
+
+	   zero
+	       0
+
+	   vsad
+	       sum of absolute vertical differences
+
+	   vsse
+	       sum of squared vertical differences
+
+	   nsse
+	       noise preserving sum of squared differences
+
+	   w53 5/3 wavelet, only used in snow
+
+	   w97 9/7 wavelet, only used in snow
+
+	   dctmax
+	   chroma
        mblmin integer (encoding,video)
 	   Set min macroblock lagrange factor (VBR).
 
        mblmax integer (encoding,video)
 	   Set max macroblock lagrange factor (VBR).
+
+       mepc integer (encoding,video)
+	   Set motion estimation bitrate penalty compensation (1.0 = 256).
 
        skip_loop_filter integer (decoding,video)
        skip_idct	integer (decoding,video)
@@ -775,17 +878,31 @@ CODEC OPTIONS
        bidir_refine integer (encoding,video)
 	   Refine the two motion vectors used in bidirectional macroblocks.
 
+       brd_scale integer (encoding,video)
+	   Downscale frames for dynamic B-frame decision.
+
        keyint_min integer (encoding,video)
 	   Set minimum interval between IDR-frames.
 
        refs integer (encoding,video)
 	   Set reference frames to consider for motion compensation.
 
+       chromaoffset integer (encoding,video)
+	   Set chroma qp offset from luma.
+
        trellis integer (encoding,audio,video)
 	   Set rate-distortion optimal quantization.
 
        mv0_threshold integer (encoding,video)
+       b_sensitivity integer (encoding,video)
+	   Adjust sensitivity of b_frame_strategy 1.
+
        compression_level integer (encoding,audio,video)
+       min_prediction_order integer (encoding,audio)
+       max_prediction_order integer (encoding,audio)
+       timecode_frame_start integer (encoding,video)
+	   Set GOP timecode frame start number, in non drop frame format.
+
        bits_per_raw_sample integer
        channel_layout integer (decoding/encoding,audio)
 	   Possible values:
@@ -1295,8 +1412,6 @@ SUBTITLES DECODERS
        Options
 
        compute_clut
-	   -2  Compute clut once if no matching CLUT is in the stream.
-
 	   -1  Compute clut if no matching CLUT is in the stream.
 
 	   0   Never compute CLUT
@@ -2568,10 +2683,6 @@ AUDIO ENCODERS
 VIDEO ENCODERS
        A description of some of the currently available video encoders
        follows.
-
-   a64_multi, a64_multi5
-       A64 / Commodore 64 multicolor charset encoder. "a64_multi5" is extended
-       with 5th color (colram).
 
    GIF
        GIF image/animation encoder.

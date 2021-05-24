@@ -1625,9 +1625,8 @@ OPTIONS
 	   -init_hw_device type:hwaccel_device were called immediately before.
 
        -hwaccels
-	   List all hardware acceleration components enabled in this build of
-	   ffmpeg.  Actual runtime availability depends on the hardware and
-	   its suitable driver being installed.
+	   List all hardware acceleration methods supported in this build of
+	   ffmpeg.
 
    Audio Options
        -aframes number (output)
@@ -3859,6 +3858,21 @@ CODEC OPTIONS
        b_qfactor float (encoding,video)
 	   Set qp factor between P and B frames.
 
+       b_strategy integer (encoding,video)
+	   Set strategy to choose between I/P/B-frames.
+
+       ps integer (encoding,video)
+	   Set RTP payload size in bytes.
+
+       mv_bits integer
+       header_bits integer
+       i_tex_bits integer
+       p_tex_bits integer
+       i_count integer
+       p_count integer
+       skip_count integer
+       misc_bits integer
+       frame_bits integer
        codec_tag integer
        bug flags (decoding,video)
 	   Workaround not auto detected encoder bugs.
@@ -3955,6 +3969,9 @@ CODEC OPTIONS
 
        has_b_frames integer
        block_align integer
+       mpeg_quant integer (encoding,video)
+	   Use MPEG quantizers instead of H.263.
+
        rc_override_count integer
        maxrate integer (encoding,audio,video)
 	   Set max bitrate tolerance (in bits/s). Requires bufsize to be set.
@@ -4044,6 +4061,14 @@ CODEC OPTIONS
 	       favor predicting from the previous frame instead of the current
 
        bits_per_coded_sample integer
+       pred integer (encoding,video)
+	   Set prediction method.
+
+	   Possible values:
+
+	   left
+	   plane
+	   median
        aspect rational number (encoding,video)
 	   Set sample aspect ratio.
 
@@ -4273,6 +4298,9 @@ CODEC OPTIONS
        last_pred integer (encoding,video)
 	   Set amount of motion predictors from the previous frame.
 
+       preme integer (encoding,video)
+	   Set pre motion estimation.
+
        precmp integer (encoding,video)
 	   Set pre motion estimation compare function.
 
@@ -4322,6 +4350,20 @@ CODEC OPTIONS
 	   Set limit motion vectors range (1023 for DivX player).
 
        global_quality integer (encoding,audio,video)
+       coder integer (encoding,video)
+	   Possible values:
+
+	   vlc variable length coder / huffman coder
+
+	   ac  arithmetic coder
+
+	   raw raw (no encoding)
+
+	   rle run-length coder
+
+       context integer (encoding,video)
+	   Set context model.
+
        slice_flags integer
        mbd integer (encoding,video)
 	   Set macroblock decision algorithm (high quality mode).
@@ -4335,6 +4377,12 @@ CODEC OPTIONS
 	       use fewest bits
 
 	   rd  use best rate distortion
+
+       sc_threshold integer (encoding,video)
+	   Set scene change threshold.
+
+       nr integer (encoding,video)
+	   Set noise reduction.
 
        rc_init_occupancy integer (encoding,video)
 	   Set number of bits which should be loaded into the rc buffer before
@@ -4429,11 +4477,65 @@ CODEC OPTIONS
        lowres integer (decoding,audio,video)
 	   Decode at 1= 1/2, 2=1/4, 3=1/8 resolutions.
 
+       skip_threshold integer (encoding,video)
+	   Set frame skip threshold.
+
+       skip_factor integer (encoding,video)
+	   Set frame skip factor.
+
+       skip_exp integer (encoding,video)
+	   Set frame skip exponent.  Negative values behave identical to the
+	   corresponding positive ones, except that the score is normalized.
+	   Positive values exist primarily for compatibility reasons and are
+	   not so useful.
+
+       skipcmp integer (encoding,video)
+	   Set frame skip compare function.
+
+	   Possible values:
+
+	   sad sum of absolute differences, fast (default)
+
+	   sse sum of squared errors
+
+	   satd
+	       sum of absolute Hadamard transformed differences
+
+	   dct sum of absolute DCT transformed differences
+
+	   psnr
+	       sum of squared quantization errors (avoid, low quality)
+
+	   bit number of bits needed for the block
+
+	   rd  rate distortion optimal, slow
+
+	   zero
+	       0
+
+	   vsad
+	       sum of absolute vertical differences
+
+	   vsse
+	       sum of squared vertical differences
+
+	   nsse
+	       noise preserving sum of squared differences
+
+	   w53 5/3 wavelet, only used in snow
+
+	   w97 9/7 wavelet, only used in snow
+
+	   dctmax
+	   chroma
        mblmin integer (encoding,video)
 	   Set min macroblock lagrange factor (VBR).
 
        mblmax integer (encoding,video)
 	   Set max macroblock lagrange factor (VBR).
+
+       mepc integer (encoding,video)
+	   Set motion estimation bitrate penalty compensation (1.0 = 256).
 
        skip_loop_filter integer (decoding,video)
        skip_idct	integer (decoding,video)
@@ -4471,17 +4573,31 @@ CODEC OPTIONS
        bidir_refine integer (encoding,video)
 	   Refine the two motion vectors used in bidirectional macroblocks.
 
+       brd_scale integer (encoding,video)
+	   Downscale frames for dynamic B-frame decision.
+
        keyint_min integer (encoding,video)
 	   Set minimum interval between IDR-frames.
 
        refs integer (encoding,video)
 	   Set reference frames to consider for motion compensation.
 
+       chromaoffset integer (encoding,video)
+	   Set chroma qp offset from luma.
+
        trellis integer (encoding,audio,video)
 	   Set rate-distortion optimal quantization.
 
        mv0_threshold integer (encoding,video)
+       b_sensitivity integer (encoding,video)
+	   Adjust sensitivity of b_frame_strategy 1.
+
        compression_level integer (encoding,audio,video)
+       min_prediction_order integer (encoding,audio)
+       max_prediction_order integer (encoding,audio)
+       timecode_frame_start integer (encoding,video)
+	   Set GOP timecode frame start number, in non drop frame format.
+
        bits_per_raw_sample integer
        channel_layout integer (decoding/encoding,audio)
 	   Possible values:
@@ -4991,8 +5107,6 @@ SUBTITLES DECODERS
        Options
 
        compute_clut
-	   -2  Compute clut once if no matching CLUT is in the stream.
-
 	   -1  Compute clut if no matching CLUT is in the stream.
 
 	   0   Never compute CLUT
@@ -6264,10 +6378,6 @@ AUDIO ENCODERS
 VIDEO ENCODERS
        A description of some of the currently available video encoders
        follows.
-
-   a64_multi, a64_multi5
-       A64 / Commodore 64 multicolor charset encoder. "a64_multi5" is extended
-       with 5th color (colram).
 
    GIF
        GIF image/animation encoder.
@@ -9052,6 +9162,7 @@ FORMAT OPTIONS
 	   ignidx
 	       Ignore index.
 
+	   keepside (deprecated,inert)
 	   nobuffer
 	       Reduce the latency introduced by buffering during initial input
 	       streams analysis.
@@ -9081,6 +9192,7 @@ FORMAT OPTIONS
 	   flush_packets
 	       Write out packets immediately.
 
+	   latm (deprecated,inert)
 	   shortest
 	       Stop muxing at the end of the shortest stream.  It may be
 	       needed to increase max_interleave_delta to avoid flushing the
@@ -9500,13 +9612,12 @@ DEMUXERS
        properties from the "<Representation>" as metadata keys named "id" and
        "variant_bitrate" respectively.
 
-   flv, live_flv, kux
+   flv, live_flv
        Adobe Flash Video Format demuxer.
 
        This demuxer is used to demux FLV files and RTMP network streams. In
        case of live network streams, if you force format, you may use live_flv
-       option instead of flv to survive timestamp discontinuities.  KUX is a
-       flv variant used on the Youku platform.
+       option instead of flv to survive timestamp discontinuities.
 
 	       ffmpeg -f flv -i myfile.flv ...
 	       ffmpeg -f live_flv -i rtmp://<any.server>/anything/key ....
@@ -10093,29 +10204,6 @@ MUXERS
 
        A description of some of the currently available muxers follows.
 
-   a64
-       A64 muxer for Commodore 64 video. Accepts a single "a64_multi" or
-       "a64_multi5" codec video stream.
-
-   adts
-       Audio Data Transport Stream muxer. It accepts a single AAC stream.
-
-       Options
-
-       It accepts the following options:
-
-       write_id3v2 bool
-	   Enable to write ID3v2.4 tags at the start of the stream. Default is
-	   disabled.
-
-       write_apetag bool
-	   Enable to write APE tags at the end of the stream. Default is
-	   disabled.
-
-       write_mpeg2 bool
-	   Enable to set MPEG version bit in the ADTS frame header to 1 which
-	   indicates MPEG-2. Default is 0, which indicates MPEG-4.
-
    aiff
        Audio Interchange File Format muxer.
 
@@ -10129,28 +10217,6 @@ MUXERS
        id3v2_version
 	   Select ID3v2 version to write. Currently only version 3 and 4 (aka.
 	   ID3v2.3 and ID3v2.4) are supported. The default is version 4.
-
-   alp
-       Muxer for audio of High Voltage Software's Lego Racers game. It accepts
-       a single ADPCM_IMA_ALP stream with no more than 2 channels nor a sample
-       rate greater than 44100 Hz.
-
-       Extensions: tun, pcm
-
-       Options
-
-       It accepts the following options:
-
-       type type
-	   Set file type.
-
-	   tun Set file type as music. Must have a sample rate of 22050 Hz.
-
-	   pcm Set file type as sfx.
-
-	   auto
-	       Set file type as per output file extension. ".pcm" results in
-	       type "pcm" else type "tun" is set. (default)
 
    asf
        Advanced Systems Format muxer.
@@ -10269,6 +10335,32 @@ MUXERS
 
 	       ffmpeg -i INPUT -c:a pcm_u8 -c:v mpeg2video -f crc -
 
+   flv
+       Adobe Flash Video Format muxer.
+
+       This muxer accepts the following options:
+
+       flvflags flags
+	   Possible values:
+
+	   aac_seq_header_detect
+	       Place AAC sequence header based on audio stream data.
+
+	   no_sequence_end
+	       Disable sequence end tag.
+
+	   no_metadata
+	       Disable metadata tag.
+
+	   no_duration_filesize
+	       Disable duration and filesize in metadata when they are equal
+	       to zero at the end of stream. (Be used to non-seekable living
+	       stream).
+
+	   add_keyframe_index
+	       Used to facilitate seeking; particularly for HTTP pseudo
+	       streaming.
+
    dash
        Dynamic Adaptive Streaming over HTTP (DASH) muxer that creates segments
        and manifest files according to the MPEG-DASH standard ISO/IEC
@@ -10298,6 +10390,10 @@ MUXERS
 	       -b_strategy 0 -ar:a:1 22050 -use_timeline 1 -use_template 1 \
 	       -window_size 5 -adaptation_sets "id=0,streams=v id=1,streams=a" \
 	       -f dash /path/to/out.mpd
+
+       min_seg_duration microseconds
+	   This is a deprecated option to set the segment length in
+	   microseconds, use seg_duration instead.
 
        seg_duration duration
 	   Set the segment length in seconds (fractional value can be set).
@@ -10505,121 +10601,6 @@ MUXERS
        update_period update_period
 	    Set the mpd update period ,for dynamic content.
 	    The unit is second.
-
-   fifo
-       The fifo pseudo-muxer allows the separation of encoding and muxing by
-       using first-in-first-out queue and running the actual muxer in a
-       separate thread. This is especially useful in combination with the tee
-       muxer and can be used to send data to several destinations with
-       different reliability/writing speed/latency.
-
-       API users should be aware that callback functions (interrupt_callback,
-       io_open and io_close) used within its AVFormatContext must be thread-
-       safe.
-
-       The behavior of the fifo muxer if the queue fills up or if the output
-       fails is selectable,
-
-       o   output can be transparently restarted with configurable delay
-	   between retries based on real time or time of the processed stream.
-
-       o   encoding can be blocked during temporary failure, or continue
-	   transparently dropping packets in case fifo queue fills up.
-
-       fifo_format
-	   Specify the format name. Useful if it cannot be guessed from the
-	   output name suffix.
-
-       queue_size
-	   Specify size of the queue (number of packets). Default value is 60.
-
-       format_opts
-	   Specify format options for the underlying muxer. Muxer options can
-	   be specified as a list of key=value pairs separated by ':'.
-
-       drop_pkts_on_overflow bool
-	   If set to 1 (true), in case the fifo queue fills up, packets will
-	   be dropped rather than blocking the encoder. This makes it possible
-	   to continue streaming without delaying the input, at the cost of
-	   omitting part of the stream. By default this option is set to 0
-	   (false), so in such cases the encoder will be blocked until the
-	   muxer processes some of the packets and none of them is lost.
-
-       attempt_recovery bool
-	   If failure occurs, attempt to recover the output. This is
-	   especially useful when used with network output, since it makes it
-	   possible to restart streaming transparently.  By default this
-	   option is set to 0 (false).
-
-       max_recovery_attempts
-	   Sets maximum number of successive unsuccessful recovery attempts
-	   after which the output fails permanently. By default this option is
-	   set to 0 (unlimited).
-
-       recovery_wait_time duration
-	   Waiting time before the next recovery attempt after previous
-	   unsuccessful recovery attempt. Default value is 5 seconds.
-
-       recovery_wait_streamtime bool
-	   If set to 0 (false), the real time is used when waiting for the
-	   recovery attempt (i.e. the recovery will be attempted after at
-	   least recovery_wait_time seconds).  If set to 1 (true), the time of
-	   the processed stream is taken into account instead (i.e. the
-	   recovery will be attempted after at least recovery_wait_time
-	   seconds of the stream is omitted).  By default, this option is set
-	   to 0 (false).
-
-       recover_any_error bool
-	   If set to 1 (true), recovery will be attempted regardless of type
-	   of the error causing the failure. By default this option is set to
-	   0 (false) and in case of certain (usually permanent) errors the
-	   recovery is not attempted even when attempt_recovery is set to 1.
-
-       restart_with_keyframe bool
-	   Specify whether to wait for the keyframe after recovering from
-	   queue overflow or failure. This option is set to 0 (false) by
-	   default.
-
-       timeshift duration
-	   Buffer the specified amount of packets and delay writing the
-	   output. Note that queue_size must be big enough to store the
-	   packets for timeshift. At the end of the input the fifo buffer is
-	   flushed at realtime speed.
-
-       Examples
-
-       o   Stream something to rtmp server, continue processing the stream at
-	   real-time rate even in case of temporary failure (network outage)
-	   and attempt to recover streaming every second indefinitely.
-
-		   ffmpeg -re -i ... -c:v libx264 -c:a aac -f fifo -fifo_format flv -map 0:v -map 0:a
-		     -drop_pkts_on_overflow 1 -attempt_recovery 1 -recovery_wait_time 1 rtmp://example.com/live/stream_name
-
-   flv
-       Adobe Flash Video Format muxer.
-
-       This muxer accepts the following options:
-
-       flvflags flags
-	   Possible values:
-
-	   aac_seq_header_detect
-	       Place AAC sequence header based on audio stream data.
-
-	   no_sequence_end
-	       Disable sequence end tag.
-
-	   no_metadata
-	       Disable metadata tag.
-
-	   no_duration_filesize
-	       Disable duration and filesize in metadata when they are equal
-	       to zero at the end of stream. (Be used to non-seekable living
-	       stream).
-
-	   add_keyframe_index
-	       Used to facilitate seeking; particularly for HTTP pseudo
-	       streaming.
 
    framecrc
        Per-packet CRC (Cyclic Redundancy Check) testing format.
@@ -10850,6 +10831,14 @@ MUXERS
 	   parameters. Values containing ":" special characters must be
 	   escaped.
 
+       hls_wrap wrap
+	   This is a deprecated option, you can use "hls_list_size" and
+	   "hls_flags delete_segments" instead it
+
+	   This option is useful to avoid to fill the disk with many segment
+	   files, and limits the maximum number of segment files written to
+	   disk to wrap.
+
        hls_start_number_source
 	   Start the playlist sequence number ("#EXT-X-MEDIA-SEQUENCE")
 	   according to the specified source.  Unless "hls_flags single_file"
@@ -10942,6 +10931,9 @@ MUXERS
 	   vs0/file_000.ts, vs0/file_001.ts, vs0/file_002.ts, etc. and
 	   vs1/file_000.ts, vs1/file_001.ts, vs1/file_002.ts, etc.
 
+       use_localtime
+	   Same as strftime option, will be deprecated.
+
        strftime
 	   Use strftime() on filename to expand the segment filename with
 	   localtime.  The segment number is also available in this mode, but
@@ -10960,6 +10952,9 @@ MUXERS
 
 	   This example will produce the playlist, out.m3u8, and segment
 	   files: file-20160215-0001.ts, file-20160215-0002.ts, etc.
+
+       use_localtime_mkdir
+	   Same as strftime_mkdir option, will be deprecated .
 
        strftime_mkdir
 	   Used together with -strftime_mkdir, it will create all
@@ -11815,10 +11810,6 @@ MUXERS
 	   For example, an encoding use case with decklink capture source
 	   where video_pts and audio_pts are set to abs_wallclock.
 
-       -movie_timescale scale
-	   Set the timescale written in the movie header box ("mvhd").	Range
-	   is 1 to INT_MAX. Default is 1000.
-
        Example
 
        Smooth Streaming content can be pushed in real time to a publishing
@@ -12085,187 +12076,6 @@ MUXERS
 	   Serial value from which to set the streams serial number.  Setting
 	   it to different and sufficiently large values ensures that the
 	   produced ogg files can be safely chained.
-
-   raw muxers
-       Raw muxers accept a single stream matching the designated codec. They
-       do not store timestamps or metadata.  The recognized extension is the
-       same as the muxer name unless indicated otherwise.
-
-       ac3
-
-       Dolby Digital, also known as AC-3, audio.
-
-       adx
-
-       CRI Middleware ADX audio.
-
-       This muxer will write out the total sample count near the start of the
-       first packet when the output is seekable and the count can be stored in
-       32 bits.
-
-       aptx
-
-       aptX (Audio Processing Technology for Bluetooth) audio.
-
-       aptx_hd
-
-       aptX HD (Audio Processing Technology for Bluetooth) audio.
-
-       Extensions: aptxhd
-
-       avs2
-
-       AVS2-P2/IEEE1857.4 video.
-
-       Extensions: avs, avs2
-
-       cavsvideo
-
-       Chinese AVS (Audio Video Standard) video.
-
-       Extensions: cavs
-
-       codec2raw
-
-       Codec 2 audio.
-
-       No extension is registered so format name has to be supplied e.g. with
-       the ffmpeg CLI tool "-f codec2raw".
-
-       data
-
-       Data muxer accepts a single stream with any codec of any type.  The
-       input stream has to be selected using the "-map" option with the ffmpeg
-       CLI tool.
-
-       No extension is registered so format name has to be supplied e.g. with
-       the ffmpeg CLI tool "-f data".
-
-       dirac
-
-       BBC Dirac video. The Dirac Pro codec is a subset and is standardized as
-       SMPTE VC-2.
-
-       Extensions: drc, vc2
-
-       dnxhd
-
-       Avid DNxHD video. It is standardized as SMPTE VC-3. Accepts DNxHR
-       streams.
-
-       Extensions: dnxhd, dnxhr
-
-       dts
-
-       DTS Coherent Acoustics (DCA) audio.
-
-       eac3
-
-       Dolby Digital Plus, also known as Enhanced AC-3, audio.
-
-       g722
-
-       ITU-T G.722 audio.
-
-       g723_1
-
-       ITU-T G.723.1 audio.
-
-       Extensions: tco, rco
-
-       g726
-
-       ITU-T G.726 big-endian ("left-justified") audio.
-
-       No extension is registered so format name has to be supplied e.g. with
-       the ffmpeg CLI tool "-f g726".
-
-       g726le
-
-       ITU-T G.726 little-endian ("right-justified") audio.
-
-       No extension is registered so format name has to be supplied e.g. with
-       the ffmpeg CLI tool "-f g726le".
-
-       gsm
-
-       Global System for Mobile Communications audio.
-
-       h261
-
-       ITU-T H.261 video.
-
-       h263
-
-       ITU-T H.263 / H.263-1996, H.263+ / H.263-1998 / H.263 version 2 video.
-
-       h264
-
-       ITU-T H.264 / MPEG-4 Part 10 AVC video. Bitstream shall be converted to
-       Annex B syntax if it's in length-prefixed mode.
-
-       Extensions: h264, 264
-
-       hevc
-
-       ITU-T H.265 / MPEG-H Part 2 HEVC video. Bitstream shall be converted to
-       Annex B syntax if it's in length-prefixed mode.
-
-       Extensions: hevc, h265, 265
-
-       m4v
-
-       MPEG-4 Part 2 video.
-
-       mjpeg
-
-       Motion JPEG video.
-
-       Extensions: mjpg, mjpeg
-
-       mlp
-
-       Meridian Lossless Packing, also known as Packed PCM, audio.
-
-       mp2
-
-       MPEG-1 Audio Layer II audio.
-
-       Extensions: mp2, m2a, mpa
-
-       mpeg1video
-
-       MPEG-1 Part 2 video.
-
-       Extensions: mpg, mpeg, m1v
-
-       mpeg2video
-
-       ITU-T H.262 / MPEG-2 Part 2 video.
-
-       Extensions: m2v
-
-       rawvideo
-
-       Raw uncompressed video.
-
-       Extensions: yuv, rgb
-
-       sbc
-
-       Bluetooth SIG low-complexity subband codec audio.
-
-       Extensions: sbc, msbc
-
-       truehd
-
-       Dolby TrueHD audio.
-
-       Extensions: thd
-
-       vc1
-
-       SMPTE 421M / VC-1 video.
 
    segment, stream_segment, ssegment
        Basic stream segmenter.
@@ -12607,6 +12417,95 @@ MUXERS
 
        See also the hash and framehash muxers.
 
+   fifo
+       The fifo pseudo-muxer allows the separation of encoding and muxing by
+       using first-in-first-out queue and running the actual muxer in a
+       separate thread. This is especially useful in combination with the tee
+       muxer and can be used to send data to several destinations with
+       different reliability/writing speed/latency.
+
+       API users should be aware that callback functions (interrupt_callback,
+       io_open and io_close) used within its AVFormatContext must be thread-
+       safe.
+
+       The behavior of the fifo muxer if the queue fills up or if the output
+       fails is selectable,
+
+       o   output can be transparently restarted with configurable delay
+	   between retries based on real time or time of the processed stream.
+
+       o   encoding can be blocked during temporary failure, or continue
+	   transparently dropping packets in case fifo queue fills up.
+
+       fifo_format
+	   Specify the format name. Useful if it cannot be guessed from the
+	   output name suffix.
+
+       queue_size
+	   Specify size of the queue (number of packets). Default value is 60.
+
+       format_opts
+	   Specify format options for the underlying muxer. Muxer options can
+	   be specified as a list of key=value pairs separated by ':'.
+
+       drop_pkts_on_overflow bool
+	   If set to 1 (true), in case the fifo queue fills up, packets will
+	   be dropped rather than blocking the encoder. This makes it possible
+	   to continue streaming without delaying the input, at the cost of
+	   omitting part of the stream. By default this option is set to 0
+	   (false), so in such cases the encoder will be blocked until the
+	   muxer processes some of the packets and none of them is lost.
+
+       attempt_recovery bool
+	   If failure occurs, attempt to recover the output. This is
+	   especially useful when used with network output, since it makes it
+	   possible to restart streaming transparently.  By default this
+	   option is set to 0 (false).
+
+       max_recovery_attempts
+	   Sets maximum number of successive unsuccessful recovery attempts
+	   after which the output fails permanently. By default this option is
+	   set to 0 (unlimited).
+
+       recovery_wait_time duration
+	   Waiting time before the next recovery attempt after previous
+	   unsuccessful recovery attempt. Default value is 5 seconds.
+
+       recovery_wait_streamtime bool
+	   If set to 0 (false), the real time is used when waiting for the
+	   recovery attempt (i.e. the recovery will be attempted after at
+	   least recovery_wait_time seconds).  If set to 1 (true), the time of
+	   the processed stream is taken into account instead (i.e. the
+	   recovery will be attempted after at least recovery_wait_time
+	   seconds of the stream is omitted).  By default, this option is set
+	   to 0 (false).
+
+       recover_any_error bool
+	   If set to 1 (true), recovery will be attempted regardless of type
+	   of the error causing the failure. By default this option is set to
+	   0 (false) and in case of certain (usually permanent) errors the
+	   recovery is not attempted even when attempt_recovery is set to 1.
+
+       restart_with_keyframe bool
+	   Specify whether to wait for the keyframe after recovering from
+	   queue overflow or failure. This option is set to 0 (false) by
+	   default.
+
+       timeshift duration
+	   Buffer the specified amount of packets and delay writing the
+	   output. Note that queue_size must be big enough to store the
+	   packets for timeshift. At the end of the input the fifo buffer is
+	   flushed at realtime speed.
+
+       Examples
+
+       o   Stream something to rtmp server, continue processing the stream at
+	   real-time rate even in case of temporary failure (network outage)
+	   and attempt to recover streaming every second indefinitely.
+
+		   ffmpeg -re -i ... -c:v libx264 -c:a aac -f fifo -fifo_format flv -map 0:v -map 0:a
+		     -drop_pkts_on_overflow 1 -attempt_recovery 1 -recovery_wait_time 1 rtmp://example.com/live/stream_name
+
    tee
        The tee muxer can be used to write the same data to several outputs,
        such as files or streams.  It can be used, for example, to stream a
@@ -12730,46 +12629,6 @@ MUXERS
 		   ffmpeg -i ... -map 0 -flags +global_header -c:v libx264 -c:a aac
 			  -f tee "[bsfs/v=dump_extra=freq=keyframe]out.ts|[movflags=+faststart]out.mp4|[select=\'a:1\']out.aac"
 
-   webm_chunk
-       WebM Live Chunk Muxer.
-
-       This muxer writes out WebM headers and chunks as separate files which
-       can be consumed by clients that support WebM Live streams via DASH.
-
-       Options
-
-       This muxer supports the following options:
-
-       chunk_start_index
-	   Index of the first chunk (defaults to 0).
-
-       header
-	   Filename of the header where the initialization data will be
-	   written.
-
-       audio_chunk_duration
-	   Duration of each audio chunk in milliseconds (defaults to 5000).
-
-       Example
-
-	       ffmpeg -f v4l2 -i /dev/video0 \
-		      -f alsa -i hw:0 \
-		      -map 0:0 \
-		      -c:v libvpx-vp9 \
-		      -s 640x360 -keyint_min 30 -g 30 \
-		      -f webm_chunk \
-		      -header webm_live_video_360.hdr \
-		      -chunk_start_index 1 \
-		      webm_live_video_360_%d.chk \
-		      -map 1:0 \
-		      -c:a libvorbis \
-		      -b:a 128k \
-		      -f webm_chunk \
-		      -header webm_live_audio_128.hdr \
-		      -chunk_start_index 1 \
-		      -audio_chunk_duration 1000 \
-		      webm_live_audio_128_%d.chk
-
    webm_dash_manifest
        WebM DASH Manifest muxer.
 
@@ -12834,6 +12693,46 @@ MUXERS
 		      -f webm_dash_manifest \
 		      -adaptation_sets "id=0,streams=0,1 id=1,streams=2,3" \
 		      manifest.xml
+
+   webm_chunk
+       WebM Live Chunk Muxer.
+
+       This muxer writes out WebM headers and chunks as separate files which
+       can be consumed by clients that support WebM Live streams via DASH.
+
+       Options
+
+       This muxer supports the following options:
+
+       chunk_start_index
+	   Index of the first chunk (defaults to 0).
+
+       header
+	   Filename of the header where the initialization data will be
+	   written.
+
+       audio_chunk_duration
+	   Duration of each audio chunk in milliseconds (defaults to 5000).
+
+       Example
+
+	       ffmpeg -f v4l2 -i /dev/video0 \
+		      -f alsa -i hw:0 \
+		      -map 0:0 \
+		      -c:v libvpx-vp9 \
+		      -s 640x360 -keyint_min 30 -g 30 \
+		      -f webm_chunk \
+		      -header webm_live_video_360.hdr \
+		      -chunk_start_index 1 \
+		      webm_live_video_360_%d.chk \
+		      -map 1:0 \
+		      -c:a libvorbis \
+		      -b:a 128k \
+		      -f webm_chunk \
+		      -header webm_live_audio_128.hdr \
+		      -chunk_start_index 1 \
+		      -audio_chunk_duration 1000 \
+		      webm_live_audio_128_%d.chk
 
 METADATA
        FFmpeg is able to dump metadata from media files into a simple
@@ -13262,6 +13161,9 @@ PROTOCOLS
        user_agent
 	   Override the User-Agent header. If not specified the protocol will
 	   use a string describing the libavformat build. ("Lavf/<version>")
+
+       user-agent
+	   This is a deprecated option, you can use user_agent instead it.
 
        reconnect_at_eof
 	   If set then eof is treated like an error and causes reconnection,
@@ -13939,19 +13841,19 @@ PROTOCOLS
        max_port
 	   Set maximum local UDP port. Default value is 65000.
 
-       listen_timeout
-	   Set maximum timeout (in seconds) to establish an initial
-	   connection. Setting listen_timeout > 0 sets rtsp_flags to listen.
-	   Default is -1 which means an infinite timeout when listen mode is
-	   set.
+       timeout
+	   Set maximum timeout (in seconds) to wait for incoming connections.
+
+	   A value of -1 means infinite (default). This option implies the
+	   rtsp_flags set to listen.
 
        reorder_queue_size
 	   Set number of packets to buffer for handling of reordered packets.
 
-       timeout
+       stimeout
 	   Set socket TCP I/O timeout in microseconds.
 
-       user_agent
+       user-agent
 	   Override User-Agent header. If not specified, it defaults to the
 	   libavformat identifier string.
 
@@ -18564,8 +18466,7 @@ AUDIO FILTERS
        This filter supports the following commands:
 
        weights
-       normalize
-	   Syntax is same as option with same name.
+       sum Syntax is same as option with same name.
 
    amultiply
        Multiply first audio stream with second audio stream and store result
@@ -25516,7 +25417,7 @@ VIDEO FILTERS
 	   tensorflow
 	       TensorFlow backend. To enable this backend you need to install
 	       the TensorFlow for C library (see
-	       <https://www.tensorflow.org/install/lang_c>) and configure
+	       <https://www.tensorflow.org/install/install_c>) and configure
 	       FFmpeg with "--enable-libtensorflow"
 
 	   Default value is native.
@@ -25733,83 +25634,6 @@ VIDEO FILTERS
 
 		   ffmpeg -i INPUT -f lavfi -i nullsrc=hd720,geq='r=128+80*(sin(sqrt((X-W/2)*(X-W/2)+(Y-H/2)*(Y-H/2))/220*2*PI+T)):g=128+80*(sin(sqrt((X-W/2)*(X-W/2)+(Y-H/2)*(Y-H/2))/220*2*PI+T)):b=128+80*(sin(sqrt((X-W/2)*(X-W/2)+(Y-H/2)*(Y-H/2))/220*2*PI+T))' -lavfi '[1]split[x][y],[0][x][y]displace' OUTPUT
 
-   dnn_classify
-       Do classification with deep neural networks based on bounding boxes.
-
-       The filter accepts the following options:
-
-       dnn_backend
-	   Specify which DNN backend to use for model loading and execution.
-	   This option accepts only openvino now, tensorflow backends will be
-	   added.
-
-       model
-	   Set path to model file specifying network architecture and its
-	   parameters.	Note that different backends use different file
-	   formats.
-
-       input
-	   Set the input name of the dnn network.
-
-       output
-	   Set the output name of the dnn network.
-
-       confidence
-	   Set the confidence threshold (default: 0.5).
-
-       labels
-	   Set path to label file specifying the mapping between label id and
-	   name.  Each label name is written in one line, tailing spaces and
-	   empty lines are skipped.  The first line is the name of label id 0,
-	   and the second line is the name of label id 1, etc.	The label id
-	   is considered as name if the label file is not provided.
-
-       backend_configs
-	   Set the configs to be passed into backend
-
-	   For tensorflow backend, you can set its configs with sess_config
-	   options, please use tools/python/tf_sess_config.py to get the
-	   configs for your system.
-
-   dnn_detect
-       Do object detection with deep neural networks.
-
-       The filter accepts the following options:
-
-       dnn_backend
-	   Specify which DNN backend to use for model loading and execution.
-	   This option accepts only openvino now, tensorflow backends will be
-	   added.
-
-       model
-	   Set path to model file specifying network architecture and its
-	   parameters.	Note that different backends use different file
-	   formats.
-
-       input
-	   Set the input name of the dnn network.
-
-       output
-	   Set the output name of the dnn network.
-
-       confidence
-	   Set the confidence threshold (default: 0.5).
-
-       labels
-	   Set path to label file specifying the mapping between label id and
-	   name.  Each label name is written in one line, tailing spaces and
-	   empty lines are skipped.  The first line is the name of label id 0
-	   (usually it is 'background'), and the second line is the name of
-	   label id 1, etc.  The label id is considered as name if the label
-	   file is not provided.
-
-       backend_configs
-	   Set the configs to be passed into backend
-
-       async
-	   use DNN async execution if set (default: set), roll back to sync
-	   execution if the backend does not support async.
-
    dnn_processing
        Do image processing with deep neural networks. It works together with
        another filter which converts the pixel format of the Frame to what the
@@ -25827,7 +25651,7 @@ VIDEO FILTERS
 	   tensorflow
 	       TensorFlow backend. To enable this backend you need to install
 	       the TensorFlow for C library (see
-	       <https://www.tensorflow.org/install/lang_c>) and configure
+	       <https://www.tensorflow.org/install/install_c>) and configure
 	       FFmpeg with "--enable-libtensorflow"
 
 	   openvino
@@ -25856,13 +25680,6 @@ VIDEO FILTERS
        output
 	   Set the output name of the dnn network.
 
-       backend_configs
-	   Set the configs to be passed into backend
-
-	   For tensorflow backend, you can set its configs with sess_config
-	   options, please use tools/python/tf_sess_config.py to get the
-	   configs of TensorFlow backend for your system.
-
        async
 	   use DNN async execution if set (default: set), roll back to sync
 	   execution if the backend does not support async.
@@ -25883,11 +25700,9 @@ VIDEO FILTERS
 		   ./ffmpeg -i 480p.jpg -vf format=yuv420p,scale=w=iw*2:h=ih*2,dnn_processing=dnn_backend=tensorflow:model=srcnn.pb:input=x:output=y -y srcnn.jpg
 
        o   Handle the Y channel with espcn.pb (see sr filter), which changes
-	   frame size, for format yuv420p (planar YUV formats supported),
-	   please use tools/python/tf_sess_config.py to get the configs of
-	   TensorFlow backend for your system.
+	   frame size, for format yuv420p (planar YUV formats supported):
 
-		   ./ffmpeg -i 480p.jpg -vf format=yuv420p,dnn_processing=dnn_backend=tensorflow:model=espcn.pb:input=x:output=y:backend_configs=sess_config=0x10022805320e09cdccccccccccec3f20012a01303801 -y tmp.espcn.jpg
+		   ./ffmpeg -i 480p.jpg -vf format=yuv420p,dnn_processing=dnn_backend=tensorflow:model=espcn.pb:input=x:output=y -y tmp.espcn.jpg
 
    drawbox
        Draw a colored box on the input image.
@@ -26685,7 +26500,7 @@ VIDEO FILTERS
 
        pal8
 	   Set pal8 output pixel format. This option does not work with
-	   codebook length greater than 256. Default is disabled.
+	   codebook length greater than 256.
 
    entropy
        Measure graylevel entropy in histogram of color channels of video
@@ -27605,9 +27420,6 @@ VIDEO FILTERS
        xmin, ymin, xmax, ymax
 	   Specifies the rectangle in which to search.
 
-       discard
-	   Discard frames where object is not detected. Default is disabled.
-
        Examples
 
        o   Cover a rectangular object by the supplied image of a given video
@@ -28224,46 +28036,6 @@ VIDEO FILTERS
        o   Max Edge:
 
 		   greyedge=difford=1:minknorm=0:sigma=2
-
-   guided
-       Apply guided filter for edge-preserving smoothing, dehazing and so on.
-       This filter requires two inputs of same resolution and pixel format.
-       The second input serves as the reference.
-
-       The filter accepts the following options:
-
-       radius
-	   Set the box radius in pixels.  Allowed range is 1 to 20. Default is
-	   3.
-
-       eps Set regularization parameter (with square).	Allowed range is 0 to
-	   1. Default is 0.01.
-
-       mode
-	   Set filter mode. Can be "basic" or "fast".  Default is "basic".
-
-       sub Set subsampling ratio for "fast" mode.  Range is 2 to 64. Default
-	   is 4.  No subsampling occurs in "basic" mode.
-
-       planes
-	   Set planes to filter. Default is first only.
-
-       Commands
-
-       This filter supports the all above options as commands.
-
-       Examples
-
-       o   Edge-preserving smoothing with guided filter:
-
-		   ffmpeg -i in.png -i in.png -filter_complex guided out.png
-
-       o   Dehazing, structure-transferring filtering, detail enhancement with
-	   guided filter.  For the generation of guidance image, refer to
-	   paper "Guided Image Filtering".  See:
-	   <http://kaiminghe.com/publications/pami12guidedfilter.pdf>.
-
-		   ffmpeg -i in.png -i guidance.png -filter_complex guided out.png
 
    haldclut
        Apply a Hald CLUT to a video stream.
@@ -29168,9 +28940,6 @@ VIDEO FILTERS
        Obtain the VMAF (Video Multi-Method Assessment Fusion) score between
        two input videos.
 
-       The first input is the encoded video, and the second input is the
-       reference video.
-
        The obtained VMAF score is printed through the logging system.
 
        It requires Netflix's vmaf library (libvmaf) as a pre-requisite.  After
@@ -30004,7 +29773,7 @@ VIDEO FILTERS
 
        A description of the accepted options follows.
 
-       inputs
+       nb_inputs
 	   The number of inputs. If unspecified, it defaults to 2.
 
        weights
@@ -33485,7 +33254,7 @@ VIDEO FILTERS
 	   tensorflow
 	       TensorFlow backend. To enable this backend you need to install
 	       the TensorFlow for C library (see
-	       <https://www.tensorflow.org/install/lang_c>) and configure
+	       <https://www.tensorflow.org/install/install_c>) and configure
 	       FFmpeg with "--enable-libtensorflow"
 
 	   Default value is native.
@@ -36117,9 +35886,6 @@ VIDEO FILTERS
    xfade
        Apply cross fade from one input video stream to another input video
        stream.	The cross fade is applied for specified duration.
-
-       Both inputs must be constant frame-rate and have the same resolution,
-       pixel format, frame rate and timebase.
 
        The filter accepts the following options:
 
@@ -39138,10 +38904,10 @@ MULTIMEDIA FILTERS
 	   expression is evaluated through the eval API and can contain the
 	   following constants:
 
-	   VALUE1, FRAMEVAL
+	   VALUE1
 	       Float representation of "value" from metadata key.
 
-	   VALUE2, USERVAL
+	   VALUE2
 	       Float representation of "value" as supplied by user in "value"
 	       option.
 
@@ -41804,7 +41570,7 @@ SUPPORTED FILE FORMATS
        Wing Commander III movie   :    @tab X
 	       @tab Multimedia format used in Origin's Wing Commander III computer game.
 
-       Westwood Studios audio	  :  X @tab X
+       Westwood Studios audio	  :    @tab X
 	       @tab Multimedia format used in Westwood Studios games.
 
        Westwood Studios VQA	  :    @tab X
@@ -42366,7 +42132,6 @@ SUPPORTED FILE FORMATS
        ADPCM Electronic Arts XAS  :	 @tab  X
        ADPCM G.722	       :   X  @tab  X
        ADPCM G.726	       :   X  @tab  X
-       ADPCM IMA Acorn Replay  :      @tab  X
        ADPCM IMA AMV	       :   X  @tab  X
 	       @tab Used in AMV files
 
@@ -42409,7 +42174,7 @@ SUPPORTED FILE FORMATS
        ADPCM VIMA	       :      @tab  X
 	       @tab Used in LucasArts SMUSH animations.
 
-       ADPCM Westwood Studios IMA	:   X @tab  X
+       ADPCM Westwood Studios IMA  :	  @tab	X
 	       @tab Used in Westwood Studios games like Command and Conquer.
 
        ADPCM Yamaha	       :   X  @tab  X

@@ -7,26 +7,26 @@
                                 /_/           /____/
 
 
-                build: ffmpeg-git-20210520-amd64-static.tar.xz
-              version: ab658db4d06fa5a3ef5b218e0b86970738e33016
+                build: ffmpeg-4.4-amd64-static.tar.xz
+              version: 4.4
 
                   gcc: 8.3.0
                  yasm: 1.3.0.36.ge2569
                  nasm: 2.15.05
 
-               libaom: 3.1.0-229-g31d4547d9
-               libass: 0.15.1
+               libaom: 3.0.0-264-gb6edb2749
+               libass: 0.15.0
                libgme: 0.6.2
                libsrt: 1.4.2
-               libvpx: 1.10.0-62-g66c1ff685
+               libvpx: 1.10.0-33-g1c792f299
               libvmaf: 1.5.3
-              libx264: 0.163.3059 
+              libx264: 0.161.3048 
               libx265: 3.5+1-f0c1022b6
               libxvid: 1.3.7 
               libwebp: 0.6.1 
               libzimg: 3.0.1
               libzvbi: 0.2.36
-             libdav1d: 0.9.0
+             libdav1d: 0.8.2
             libgnutls: 3.7.1
             libtheora: 1.2.0alpha1+git
             libfrei0r: 1.6.1-2
@@ -60,7 +60,6 @@
       Paypal:   https://www.paypal.me/johnvansickle 
       Ethereum: 0x491f0b4bAd15FF178257D9Fa81ce87baa8b6E242 
       Bitcoin:  3ErDdF5JeG9RMx2DXwXEeunrsc5dVHjmeq 
-      Dogecoin: DH4WZPTjwKh2TarQhkpQrKjHZ9kNTkiMNL
 
       email: john.vansickle@gmail.com
       irc:   relaxed @ irc://chat.freenode.net #ffmpeg

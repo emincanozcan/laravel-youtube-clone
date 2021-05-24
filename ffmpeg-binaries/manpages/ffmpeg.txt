@@ -1625,9 +1625,8 @@ OPTIONS
 	   -init_hw_device type:hwaccel_device were called immediately before.
 
        -hwaccels
-	   List all hardware acceleration components enabled in this build of
-	   ffmpeg.  Actual runtime availability depends on the hardware and
-	   its suitable driver being installed.
+	   List all hardware acceleration methods supported in this build of
+	   ffmpeg.
 
    Audio Options
        -aframes number (output)
