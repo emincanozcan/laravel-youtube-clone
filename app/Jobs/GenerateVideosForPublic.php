@@ -23,15 +23,15 @@ class GenerateVideosForPublic implements ShouldQueue
     public function handle()
     {
         $path = 'videos/' . $this->video->id . '/' . $this->video->id . '.m3u8';
-        $lowBitrate = (new X264)->setKiloBitrate(250);
-        $midBitrate = (new X264)->setKiloBitrate(500);
-        $highBitrate = (new X264)->setKiloBitrate(1000);
+        $lowBitrate = (new X264)->setKiloBitrate(800);
+        $midBitrate = (new X264)->setKiloBitrate(1500);
+        $highBitrate = (new X264)->setKiloBitrate(4000);
 
         FFMpeg::open($this->video->original_video_path)
             ->exportForHLS()
-            ->addFormat($lowBitrate)
-            ->addFormat($midBitrate)
-            ->addFormat($highBitrate)
+            ->addFormat($lowBitrate, fn($media) => $media->scale(640, 360))
+            ->addFormat($midBitrate, fn($media) => $media->scale(1280, 720))
+            ->addFormat($highBitrate, fn($media) => $media->scale(1920, 1080))
             ->onProgress(function ($percentage) {
                 $this->video->update(['process_progress_percentage' => $percentage]);
             })
