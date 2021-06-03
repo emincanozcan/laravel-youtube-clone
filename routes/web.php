@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Video;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,6 +18,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/watch/{video}', fn(Video $video) => view('watch.show', compact('video')))
+    ->name('watch.show');
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function(){
 

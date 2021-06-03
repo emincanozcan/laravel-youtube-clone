@@ -12,7 +12,7 @@ class Video extends Model
 
     protected $guarded = [];
 
-    protected $appends = ['video_thumbnail_url'];
+    protected $appends = ['video_thumbnail_url', 'public_video_url'];
 
     public function getVideoThumbnailUrlAttribute()
     {
@@ -24,4 +24,13 @@ class Video extends Model
         return "https://ui-avatars.com/api/?name=" . $this->title . "&color=7F9CF5&background=EBF4FF";
     }
 
+    public function getPublicVideoUrlAttribute()
+    {
+        if ($this->public_video_path) {
+            return Storage::disk('public')->url($this->public_video_path);
+        }
+
+        // TODO: think about it...
+        return "";
+    }
 }
