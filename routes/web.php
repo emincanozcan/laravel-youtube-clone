@@ -18,8 +18,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/watch/{video}', fn(Video $video) => view('watch.show', compact('video')))
-    ->name('watch.show');
+Route::get('/watch/{video}', function (Video $video) {
+    $video->increment('view_count');
+    return view('watch.show', compact('video'));
+})->name('watch.show');
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function(){
 

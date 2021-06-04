@@ -63,4 +63,29 @@ class User extends Authenticatable
     {
         return $this->hasOne(Channel::class);
     }
+
+    public function videoLikings()
+    {
+        return $this->hasMany(VideoLiking::class);
+    }
+
+    public function likeVideo($video)
+    {
+        $this->videoLikings()->create([
+            'video_id' => $video->id,
+            'type' => VideoLiking::$LIKE
+        ]);
+
+        $video->increment('like_count');
+    }
+
+    public function dislikeVideo($video)
+    {
+        $this->videoLikings()->create([
+            'video_id' => $video->id,
+            'type' => VideoLiking::$DISLIKE
+        ]);
+
+        $video->increment('dislike_count');
+    }
 }

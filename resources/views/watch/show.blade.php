@@ -1,6 +1,5 @@
 <x-guest-layout>
 <div class="flex flex-col mt-8 items-center justify-center">
-    <h2 class="font-bold text-2xl mb-4">{{ $video->title }}</h2>
     <video
         id="watch-player"
         class="video-js "
@@ -20,6 +19,13 @@
             >
         </p>
     </video>
+    <h2 class="font-bold text-2xl mt-4 mb-4">{{ $video->title }}</h2>
+    <div class="flex items-center space-x-12">
+        <span>View Count: {{ $video->view_count }}</span>
+        <div>
+            @livewire('watch.video-liking', ['video' => $video])
+        </div>
+    </div>
 </div>
 
 

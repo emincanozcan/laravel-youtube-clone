@@ -21,6 +21,9 @@ class CreateVideosTable extends Migration
             $table->text('public_video_path')->nullable();
             $table->text('video_thumbnail_path')->nullable();
             $table->unsignedInteger('process_progress_percentage')->default(0);
+            $table->unsignedBigInteger('view_count')->default(0);
+            $table->unsignedBigInteger('like_count')->default(0);
+            $table->unsignedBigInteger('dislike_count')->default(0);
             $table->timestamps();
         });
     }
