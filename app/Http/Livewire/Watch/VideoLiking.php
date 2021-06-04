@@ -12,6 +12,10 @@ class VideoLiking extends Component
 
     protected function setStatus()
     {
+        if (!auth()->check()) {
+            return;
+        }
+
         $videoLiking = auth()->user()->videoLikings()->where('video_id', $this->video->id)->first();
         if ($videoLiking) {
             return $this->status = $videoLiking->type === \App\Models\VideoLiking::$LIKE ? 'liked' : 'disliked';
