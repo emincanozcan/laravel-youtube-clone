@@ -73,7 +73,7 @@ class User extends Authenticatable
     {
         $this->videoLikings()->create([
             'video_id' => $video->id,
-            'type' => VideoLiking::$LIKE
+            'type' => VideoLiking::LIKE
         ]);
 
         $video->increment('like_count');
@@ -83,7 +83,7 @@ class User extends Authenticatable
     {
         $this->videoLikings()->create([
             'video_id' => $video->id,
-            'type' => VideoLiking::$DISLIKE
+            'type' => VideoLiking::DISLIKE
         ]);
 
         $video->increment('dislike_count');

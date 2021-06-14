@@ -11,8 +11,8 @@ class VideoLiking extends Model
 
     protected $guarded = [];
 
-    public static $LIKE = 1;
-    public static $DISLIKE = -1;
+    public const LIKE = 1;
+    public const DISLIKE = -1;
 
     public function video()
     {
@@ -21,14 +21,14 @@ class VideoLiking extends Model
 
     public function delete()
     {
-        $this->video->decrement($this->type === self::$LIKE ? 'like_count' : 'dislike_count');
+        $this->video->decrement($this->type === self::LIKE ? 'like_count' : 'dislike_count');
         return parent::delete();
     }
 
     public function toggle()
     {
-        $this->update(['type' => $this->type === self::$LIKE ? self::$DISLIKE : self::$LIKE]);
-        $this->video->increment($this->type === self::$LIKE ? 'like_count' : 'dislike_count');
-        $this->video->decrement($this->type === self::$LIKE ? 'dislike_count' : 'like_count');
+        $this->update(['type' => $this->type === self::LIKE ? self::DISLIKE : self::LIKE]);
+        $this->video->increment($this->type === self::LIKE ? 'like_count' : 'dislike_count');
+        $this->video->decrement($this->type === self::LIKE ? 'dislike_count' : 'like_count');
     }
 }

@@ -18,7 +18,7 @@ class VideoLiking extends Component
 
         $videoLiking = auth()->user()->videoLikings()->where('video_id', $this->video->id)->first();
         if ($videoLiking) {
-            return $this->status = $videoLiking->type === \App\Models\VideoLiking::$LIKE ? 'liked' : 'disliked';
+            return $this->status = $videoLiking->type === \App\Models\VideoLiking::LIKE ? 'liked' : 'disliked';
         }
         $this->status = "";
     }
@@ -41,7 +41,7 @@ class VideoLiking extends Component
                 ? auth()->user()->likeVideo($this->video)
                 : auth()->user()->dislikeVideo($this->video);
         } else {
-            $check = $type === "like" ? \App\Models\VideoLiking::$LIKE : \App\Models\VideoLiking::$DISLIKE;
+            $check = $type === "like" ? \App\Models\VideoLiking::LIKE : \App\Models\VideoLiking::DISLIKE;
             $videoLiking->type === $check
                 ? $videoLiking->delete()
                 : $videoLiking->toggle();
