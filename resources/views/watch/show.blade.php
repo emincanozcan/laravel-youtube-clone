@@ -26,6 +26,11 @@
             @livewire('watch.video-liking', ['video' => $video])
         </div>
     </div>
+    <div class="w-full mt-8">
+        <div class="w-1/2 mx-auto">
+            @livewire('watch.comment-form', ['video' => $video])
+        </div>
+    </div>
 </div>
 
 

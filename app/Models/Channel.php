@@ -27,4 +27,9 @@ class Channel extends Model
     {
         return $this->hasMany(Video::class);
     }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
 }
