@@ -33,4 +33,9 @@ class Video extends Model
         // TODO: think about it...
         return "";
     }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
 }

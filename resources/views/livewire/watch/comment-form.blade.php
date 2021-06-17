@@ -14,13 +14,22 @@
       textarea.style.height = textarea.scrollHeight + 2 + 'px';
     }
 }">
-    <img class="w-16 h-16 rounded-full" src="{{ auth()->user()->channel->channel_photo_url }}" alt="">
+    @if(auth()->check())
+        <img class="w-12 h-12 rounded-full" src="{{ auth()->user()->channel->channel_photo_url }}" alt="">
+    @endif
     <div class="flex flex-col flex-1">
-        <textarea @input="setTextareaHeight(); setCommentButtonActive();"
-                  @click="showButtons = true; setCommentButtonActive();"
-                  class="border border-gray-200 resize-none rounded-md shadow-lg text-gray-700"
-                  wire:model.defer="body"
-                  placeholder="Add a public comment..." rows="1"></textarea>
+        <textarea
+            @if(auth()->check())
+            placeholder="Add a public comment..."
+            @click="showButtons = true; setCommentButtonActive();"
+            @else
+            placeholder="Login to add a public comment..."
+            wire:click="redirectToLogin"
+            @endif
+            @input="setTextareaHeight(); setCommentButtonActive();"
+            class="border border-gray-200 resize-none rounded-md shadow-lg text-gray-700"
+            wire:model.defer="body"
+            rows="1"></textarea>
         <div x-show="showButtons" class="flex justify-end items-center mt-3 space-x-2">
             <button @click="showButtons = false; $el.querySelector('textarea').value = ''"
                     class="px-4 py-2 text-gray-700 font-semibold">CANCEL

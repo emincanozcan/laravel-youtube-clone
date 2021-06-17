@@ -17,6 +17,10 @@ class CreateCommentsTable extends Migration
             $table->id();
             $table->foreignIdFor(\App\Models\Channel::class);
             $table->foreignIdFor(\App\Models\Video::class);
+
+            $table->foreignIdFor(\App\Models\Comment::class)->nullable();
+            # comment_id !== null ? replied_to_{comment_id} : not_reply;
+
             $table->text('body');
             $table->timestamps();
         });
