@@ -2,14 +2,17 @@
     showCommentForm: false,
     showReplies: false,
 }">
-    <img class="h-12 w-12 rounded-full" src="{{ auth()->user()->channel->channel_photo_url }}">
+    <img class="h-12 w-12 rounded-full" src="{{ $comment->channel->channel_photo_url }}">
     <div class="flex flex-col items-start">
         <div>
             <span class="text-gray-800 font-bold">{{ $comment->channel->name }}</span>
             <span class="text-gray-500 text-sm ml-2">{{ $comment->created_at->diffForHumans() }}</span>
         </div>
         <p class="mt-1 mb-3">{{ $comment->body }}</p>
-        <button class="text-gray-500 font-medium" @click="showCommentForm = !showCommentForm">REPLY</button>
+        <button class="text-gray-500 font-medium" @click="
+        showCommentForm = !showCommentForm;
+        if(showCommentForm){ $dispatch('reply-form-open') }
+">REPLY</button>
         <div x-show="showCommentForm">
             <livewire:watch.comment-form :parentComment="$comment"/>
         </div>
